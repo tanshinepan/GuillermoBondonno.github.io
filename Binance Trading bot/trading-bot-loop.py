@@ -39,14 +39,14 @@ class Account:
     
     def execute_buy(self, amount, symbol):
         price = self.get_price(symbol)
-        self.balance["USD"] -= float(price) * amount
-        self.balance[symbol] += amount
+        self.balance["USD"] -= float(price) * float(amount)
+        self.balance[symbol] += float(amount)
         
         
     def execute_sell(self, amount, symbol):
         price = self.get_price(symbol)
-        self.balance["USD"] += float(price) * amount
-        self.balance[symbol] -= amount
+        self.balance["USD"] += float(price) * float(amount)
+        self.balance[symbol] -= float(amount)
 
 
 
@@ -117,20 +117,23 @@ def create_model():
 model = create_model()
 model.load_weights(r"C:\Users\Familia\Bioquimica Guille\crypto_data\modelo_guardado.ckpt")
 
-
+x = []
+y = []
+i = 0
 starttime = time.time()
 print("starting while loop")
-while True:
+while i < 100:
 	klines_btc = client.get_historical_klines("BTCUSDT", Client.KLINE_INTERVAL_1MINUTE, "2 minutes ago UTC")[-1]
 	klines_ltc = client.get_historical_klines("LTCUSDT", Client.KLINE_INTERVAL_1MINUTE, "2 minutes ago UTC")[-1]
 	klines_xrp = client.get_historical_klines("XRPUSDT", Client.KLINE_INTERVAL_1MINUTE, "2 minutes ago UTC")[-1]
 	klines_eth = client.get_historical_klines("ETHUSDT", Client.KLINE_INTERVAL_1MINUTE, "2 minutes ago UTC")[-1]
 	now_data = np.array([[klines_btc[4], klines_btc[5]]+[klines_ltc[4], klines_ltc[5]]+[klines_xrp[4], klines_xrp[5]]+[klines_eth[4], klines_eth[5]]])
 	if model.predict_classes(starter_data)[0] == 1:
-		guille.execute_buy((guille.balance["USD"]/100)/float(guille.get_price("LTCUSDT")), "LTCUSDT")
+		amnt = (guille.balance["USD"]/100)/float(guille.get_price("LTCUSDT"))
+		guille.execute_buy(amnt, "LTCUSDT")
 		print(f"buy executed, current balance is {guille.balance['LTCUSDT']} ltcs and {guille.balance['USD']} dollars")
 		time.sleep(60.0 - ((time.time() - starttime) % 60.0))
-		guille.execute_sell((guille.balance["USD"]/100)/float(guille.get_price("LTCUSDT")), "LTCUSDT")
+		guille.execute_sell(amnt, "LTCUSDT")
 		print(f"sell executed, current balance is {guille.balance['LTCUSDT']} ltcs and {guille.balance['USD']} dollars")
 		now_data = np.reshape(now_data, (1,1,8))
 		try:
@@ -153,5 +156,13 @@ while True:
 		
 		time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
-	print(f"minute passed, balance: {guille.balance['USD']} dollars, ltcs: {guille.balance['LTCUSDT']}")
+	x.append(i)
+	y.append([guille.balance["USD"], guille.balance["LTCUSDT"]])
+	i += 1
+	print(i)
+
+print(x)
+print(y)
+
+
 

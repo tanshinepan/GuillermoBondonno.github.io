@@ -1,9 +1,4 @@
 
-# coding: utf-8
-
-# In[17]:
-
-
 import pandas as pd
 from sklearn import preprocessing
 from collections import deque
@@ -19,13 +14,9 @@ import os
 
 
 
-# In[3]:
-
-
 main_df = pd.DataFrame()
 
 
-# In[16]:
 
 
 SEQ_LEN = 60
@@ -35,7 +26,7 @@ EPOCHS = 1
 BATCH_SIZE = 64
 NAME = f"{SEQ_LEN}-SEQ-{FUTURE_PERIOD_PREDICT}-PRED-{int(time.time())}"
 
-# In[ ]:
+
 
 
 def preprocess_df(df):
@@ -46,10 +37,6 @@ def preprocess_df(df):
             df[col].replace(to_replace=0, value=1, inplace=True)
             df[col] = df[col].pct_change()
             df.dropna(inplace=True)
-            #el problema es que en ltcusd hay un volumen que es 0, entonces el pct_change da infinito
-            #habria que reemplazar todos los ceros en jupyter notebook
-            #hay que volver a agregar XRP y LTC
-            #print(min(df[col].values), max(df[col].values), ("NaN" in df[col].values), col)
             df[col] = preprocessing.scale(df[col].values)
     df.dropna(inplace = True)
 
@@ -117,9 +104,6 @@ for ratio in ratios:
     
 
 
-# In[6]:
-
-
 def classify(current, future):
     if float(future)/float(current) >1.0015 :
         return 1
@@ -127,38 +111,24 @@ def classify(current, future):
         return 0
 
 
-# In[7]:
-
 
 main_df['future'] = main_df[f'{RATIO_TO_PREDICT}_close'].shift(-FUTURE_PERIOD_PREDICT)
 
-
-# In[8]:
 
 
 main_df['target'] = list(map(classify, main_df[f'{RATIO_TO_PREDICT}_close'], main_df['future']))
 
 
-
-# In[9]:
-
-
 times = sorted(main_df.index.values)
 
-
-# In[10]:
 
 
 last_5pc = times[-int(0.05*len(times))]
 
 
-# In[11]:
-
 
 last_5pc
 
-
-# In[12]:
 
 
 validation_main_df = main_df[(main_df.index >= last_5pc)]
@@ -166,14 +136,6 @@ main_df = main_df[(main_df.index < last_5pc)]
 
 
 
-
-# In[13]:
-
-
-#ESOS ERAN WHERE METHODS
-
-
-# In[15]:
 
 
 train_x, train_y = preprocess_df(main_df)
@@ -239,6 +201,4 @@ history = model.fit(train_x,
 	#callbacks=[tensorboard, checkpoint, cp_callback])
 
 
-
-print(model.predict(train_x[3]))
 	
